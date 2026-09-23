@@ -1,10 +1,11 @@
-# Deepfake Detection
+# ByteSense
+An AI Based Deepfake AI detection model.
 
 A lightweight Flask API that analyzes uploaded images and videos and returns a verdict based on a face-crop model score.
 
 > Full project details are in [DEEPFAKE_DETECTION_README.md](DEEPFAKE_DETECTION_README.md).
 
-## Simple system overview
+## System overview
 
 ```text
 Upload file
