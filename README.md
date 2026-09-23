@@ -118,4 +118,4 @@ curl -X POST -F "file=@sample.mp4" -F "frames=20" http://127.0.0.1:10000/analyze
 | `PORT` | `10000` | Local application port |
 | `MAX_UPLOAD_MB` | `200` | Maximum upload size |
 
-For the detailed data-flow tables and file-by-file explanation, see [DEEPFAKE_DETECTION_README.md](DEEPFAKE_DETECTION_README.md).
+
