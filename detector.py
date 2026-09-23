@@ -22,7 +22,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .faces import extract_face
+from faces import extract_face
 
 DEFAULT_META = {
     "arch": "unknown",
@@ -69,9 +69,9 @@ class Detector:
             import onnxruntime as ort
 
             opts = ort.SessionOptions()
-            opts.intra_op_num_threads = 1      # free tier has a fraction of one CPU
+            opts.intra_op_num_threads = 1
             opts.inter_op_num_threads = 1
-            opts.enable_cpu_mem_arena = False  # lower peak memory
+            opts.enable_cpu_mem_arena = False
             self.session = ort.InferenceSession(
                 str(self.model_path), opts, providers=["CPUExecutionProvider"]
             )
@@ -79,7 +79,7 @@ class Detector:
             meta_path = self.model_path.with_suffix(".json")
             if meta_path.exists():
                 self.meta.update(json.loads(meta_path.read_text()))
-        except Exception as exc:  # corrupt file, wrong onnxruntime build, etc.
+        except Exception as exc:
             self.session = None
             self.error = f"The model file could not be loaded: {exc}"
 
@@ -105,10 +105,12 @@ class Detector:
     def _thumb(crop):
         small = cv2.resize(crop, (96, 96), interpolation=cv2.INTER_AREA)
         ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if not ok:
+            raise ValueError("Could not encode a face preview.")
         return "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
 
     def analyze(self, frames, media_type):
-        """frames: iterable of (index, seconds_or_None, frame_bgr)."""
+        """Analyze an iterable of (index, seconds_or_None, frame_bgr)."""
         size = int(self.meta["input_size"])
         thr, band = float(self.meta["threshold"]), float(self.meta["uncertain_band"])
         crops, rows, sampled = [], [], 0

@@ -22,14 +22,12 @@ from pathlib import Path
 from flask import Flask, jsonify, request
 
 from detector import Detector
-from media import decode_image, iter_video_frames
+from media import IMAGE_EXT, VIDEO_EXT, decode_image, iter_video_frames
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_UPLOAD_MB", "200")) * 1024 * 1024
 
 MODEL_PATH = os.getenv("MODEL_PATH", "models/model.onnx")
-VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".webm", ".mkv"}
-
 detector = Detector(MODEL_PATH)
 
 
@@ -47,6 +45,18 @@ def health():
     return jsonify({"status": "ok", "detector_available": detector.available})
 
 
+def _requested_frame_count():
+    """Return a safe positive frame count from the multipart form."""
+    raw = request.form.get("frames", "20")
+    try:
+        count = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError("The 'frames' value must be a positive integer.") from None
+    if count < 1:
+        raise ValueError("The 'frames' value must be a positive integer.")
+    return min(count, 300)
+
+
 @app.post("/analyze")
 def analyze():
     if "file" not in request.files:
@@ -60,22 +70,32 @@ def analyze():
         return jsonify({"error": detector.error or "The detector is unavailable."}), 503
 
     suffix = Path(uploaded.filename).suffix.lower()
-    if suffix in VIDEO_EXTENSIONS:
+    if suffix in VIDEO_EXT:
+        try:
+            frame_count = _requested_frame_count()
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+
         temporary_path = None
         try:
             with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temporary:
                 uploaded.save(temporary)
                 temporary_path = temporary.name
-            frames = iter_video_frames(temporary_path, n=int(request.form.get("frames", 20)))
-            result = detector.analyze(frames, "video")
+            result = detector.analyze(
+                iter_video_frames(temporary_path, n=frame_count), "video"
+            )
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
         finally:
             if temporary_path:
                 Path(temporary_path).unlink(missing_ok=True)
-    else:
+    elif suffix in IMAGE_EXT:
         image = decode_image(uploaded.read())
         if image is None:
-            return jsonify({"error": "The uploaded file is not a readable image or supported video."}), 400
+            return jsonify({"error": "The uploaded file is not a readable image."}), 400
         result = detector.analyze([(0, None, image)], "image")
+    else:
+        return jsonify({"error": "Unsupported file type. Upload a supported image or video."}), 400
 
     return jsonify(result)
 

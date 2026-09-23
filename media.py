@@ -26,7 +26,10 @@ def decode_image(data: bytes):
 
 
 def iter_video_frames(path, n):
-    """Yield (frame_index, seconds_or_None, frame_bgr) for up to n evenly spaced frames."""
+    """Yield up to n evenly spaced (index, seconds, frame_bgr) tuples."""
+    if not isinstance(n, int) or n < 1:
+        raise ValueError("The frame count must be a positive integer.")
+
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         raise ValueError("The video could not be opened. Try an MP4 (H.264) file.")
@@ -41,7 +44,7 @@ def iter_video_frames(path, n):
                 if ok:
                     got += 1
                     yield int(i), (float(i) / fps if fps > 0 else None), _limit_size(frame)
-        if got == 0:  # no usable frame count: read sequentially, keep every 15th frame
+        if got == 0:
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             i = 0
             while got < n and i < 900:
