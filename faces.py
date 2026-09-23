@@ -1,3 +1,11 @@
+"""Face detection and crop logic.
+
+Copyright (c) 2026 AdritaMarik.
+All rights reserved.
+
+This file is part of the Deepfake Detection project.
+"""
+
 """Face detection and cropping.
 
 Used by BOTH training/prepare_data.py and the web app, so the model sees

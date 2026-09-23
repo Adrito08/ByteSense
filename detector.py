@@ -1,3 +1,11 @@
+"""Deepfake detection engine.
+
+Copyright (c) 2026 AdritaMarik.
+All rights reserved.
+
+This file is part of the Deepfake Detection project.
+"""
+
 """Frame-level deepfake scoring with ONNX Runtime.
 
 Pipeline (mirrors the paper's six stages: collect -> face detection -> features

@@ -1,3 +1,11 @@
+"""Deepfake Detection Web Service.
+
+Copyright (c) 2026 AdritaMarik.
+All rights reserved.
+
+This file is part of the Deepfake Detection project.
+"""
+
 """Flask web server for the deepfake detector.
 
 Run locally with:
