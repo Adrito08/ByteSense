@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: bytesense-backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python download_model.py && cd Frontend && npm install && npm run build && cd .."
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: MAX_UPLOAD_MB
+        value: "200"
+      - key: MODEL_PATH
+        value: models/model.onnx
+      - key: FLASK_ENV
+        value: production
+      - key: MODEL_DOWNLOAD_URL
+        value: ""  # IMPORTANT: Add your model download URL here before deploying
