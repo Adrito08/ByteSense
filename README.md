@@ -86,7 +86,7 @@ flowchart LR
 ## Quick start
 
 ```bash
-python -m pip install -r requirement.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
